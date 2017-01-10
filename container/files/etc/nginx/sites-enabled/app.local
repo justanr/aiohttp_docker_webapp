@@ -1,0 +1,36 @@
+upstream app {
+  server localhost:8080;
+}
+
+server {
+
+    listen 80 default_server;
+    server_name app.local;
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+    root /var/www/static;
+    index index.html;
+
+    location @app {
+        proxy_pass http://app;
+        proxy_redirect off;
+        proxy_http_version 1.1;
+        proxy_set_header Host: $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_connect_timeout 30;
+        proxy_read_timeout 120;
+        proxy_buffering off;
+        proxy_headers_hash_max_size 1024;
+    }
+
+    location / {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+        # set the proper protocol for doing redirects:
+        # proxy_set_header X-Forwarded-Proto https;
+
+        try_files $uri $uri/ @app;
+    }
+}

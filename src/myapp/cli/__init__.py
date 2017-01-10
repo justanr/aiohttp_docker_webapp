@@ -1,0 +1,2 @@
+def myapp():
+    print("Hello!")
